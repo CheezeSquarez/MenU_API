@@ -5,7 +5,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Folder Include="Data Transfer Objects\" />
+    <ProjectReference Include="..\MenU_BL\MenU_BL.csproj" />
   </ItemGroup>
 
 </Project>
