@@ -46,7 +46,7 @@ namespace MenU_API
             #endregion
 
             #region Add DB Context Support
-            string connectionString = this.Configuration.GetConnectionString("Tamagotchi");
+            string connectionString = this.Configuration.GetConnectionString("MenU");
 
             services.AddDbContext<MenUContext>(options => options
                                                                 .UseLazyLoadingProxies()
