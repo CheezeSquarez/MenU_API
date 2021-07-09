@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 
-namespace TamagotchiWebAPI
+namespace MenU_API
 {
     public static class SessionExtensions
     {
