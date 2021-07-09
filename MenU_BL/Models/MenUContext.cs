@@ -66,8 +66,6 @@ namespace MenU_BL.Models
                 entity.HasKey(e => e.AuthToken)
                     .HasName("PK_AccountAuthToken_AuthToken");
 
-                entity.Property(e => e.AuthToken).ValueGeneratedNever();
-
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.AccountAuthTokens)
                     .HasForeignKey(d => d.AccountId)

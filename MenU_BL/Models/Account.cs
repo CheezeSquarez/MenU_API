@@ -36,7 +36,9 @@ namespace MenU_BL.Models
         [Required]
         [StringLength(255)]
         public string LastName { get; set; }
-        public int Email { get; set; }
+        [Required]
+        [StringLength(255)]
+        public string Email { get; set; }
         [Column(TypeName = "date")]
         public DateTime DateOfBirth { get; set; }
         public int AccountType { get; set; }
@@ -47,7 +49,9 @@ namespace MenU_BL.Models
         [StringLength(255)]
         public string Pass { get; set; }
         public int AccountStatus { get; set; }
-        public int Salt { get; set; }
+        [Required]
+        [StringLength(255)]
+        public string Salt { get; set; }
         public int Iterations { get; set; }
 
         [ForeignKey(nameof(AccountStatus))]

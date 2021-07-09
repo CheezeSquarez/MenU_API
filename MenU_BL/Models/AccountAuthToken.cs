@@ -14,7 +14,8 @@ namespace MenU_BL.Models
         [Column("AccountID")]
         public int AccountId { get; set; }
         [Key]
-        public int AuthToken { get; set; }
+        [StringLength(255)]
+        public string AuthToken { get; set; }
 
         [ForeignKey(nameof(AccountId))]
         [InverseProperty("AccountAuthTokens")]
