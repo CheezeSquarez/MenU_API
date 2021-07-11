@@ -10,9 +10,9 @@ namespace MenU_BL.Models
 {
     [Table("Account")]
     [Index(nameof(DateOfBirth), Name = "I_Account_DateOfBirth")]
-    [Index(nameof(Email), Name = "I_Account_Email", IsUnique = true)]
     [Index(nameof(FirstName), Name = "I_Account_FirstName")]
     [Index(nameof(LastName), Name = "I_Account_LastName")]
+    [Index(nameof(Email), Name = "UK_Account_Email", IsUnique = true)]
     [Index(nameof(Username), Name = "UK_Account_Username", IsUnique = true)]
     public partial class Account
     {

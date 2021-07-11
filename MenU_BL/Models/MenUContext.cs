@@ -46,7 +46,11 @@ namespace MenU_BL.Models
 
             modelBuilder.Entity<Account>(entity =>
             {
-                entity.Property(e => e.AccountId).ValueGeneratedNever();
+                entity.Property(e => e.AccountStatus).HasDefaultValueSql("((1))");
+
+                entity.Property(e => e.AccountType).HasDefaultValueSql("((1))");
+
+                entity.Property(e => e.ProfilePicture).HasDefaultValueSql("('/imgs/default_user_pfp.png')");
 
                 entity.HasOne(d => d.AccountStatusNavigation)
                     .WithMany(p => p.Accounts)
@@ -95,13 +99,6 @@ namespace MenU_BL.Models
             {
                 entity.HasKey(e => e.TypeId)
                     .HasName("PK_AccountType_TypeID");
-
-                entity.Property(e => e.TypeId).ValueGeneratedNever();
-            });
-
-            modelBuilder.Entity<Allergen>(entity =>
-            {
-                entity.Property(e => e.AllergenId).ValueGeneratedNever();
             });
 
             modelBuilder.Entity<AllergenInDish>(entity =>
@@ -124,7 +121,9 @@ namespace MenU_BL.Models
 
             modelBuilder.Entity<Dish>(entity =>
             {
-                entity.Property(e => e.DishId).ValueGeneratedNever();
+                entity.Property(e => e.DishPicture).HasDefaultValueSql("('/imgs/default_dish.png')");
+
+                entity.Property(e => e.DishStatus).HasDefaultValueSql("((1))");
 
                 entity.HasOne(d => d.DishStatusNavigation)
                     .WithMany(p => p.Dishes)
@@ -161,13 +160,11 @@ namespace MenU_BL.Models
             {
                 entity.HasKey(e => e.StatusId)
                     .HasName("PK_Status_StatusID");
-
-                entity.Property(e => e.StatusId).ValueGeneratedNever();
             });
 
             modelBuilder.Entity<Restaurant>(entity =>
             {
-                entity.Property(e => e.RestaurantId).ValueGeneratedNever();
+                entity.Property(e => e.RestaurantPicture).HasDefaultValueSql("('/imgs/default_restaurant.png')");
 
                 entity.HasOne(d => d.Owner)
                     .WithMany(p => p.Restaurants)
@@ -196,9 +193,11 @@ namespace MenU_BL.Models
 
             modelBuilder.Entity<Review>(entity =>
             {
-                entity.Property(e => e.ReviewId).ValueGeneratedNever();
-
                 entity.Property(e => e.PostDate).HasDefaultValueSql("(getdate())");
+
+                entity.Property(e => e.ReviewPicture).HasDefaultValueSql("('/imgs/default_review_pfp.png')");
+
+                entity.Property(e => e.ReviewStatus).HasDefaultValueSql("((1))");
 
                 entity.HasOne(d => d.DishNavigation)
                     .WithMany(p => p.Reviews)
@@ -217,11 +216,6 @@ namespace MenU_BL.Models
                     .HasForeignKey(d => d.Reviewer)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Review_Reviewer");
-            });
-
-            modelBuilder.Entity<Tag>(entity =>
-            {
-                entity.Property(e => e.TagId).ValueGeneratedNever();
             });
 
             OnModelCreatingPartial(modelBuilder);

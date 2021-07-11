@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MenU_BL.Models;
+using MenU_BL.ModelsBL;
 using MenU_API.DataTransferObjects;
 using System.Net.Http;
 
@@ -18,6 +19,8 @@ namespace MenU_API.Controllers
 
         public MainController(MenUContext context) { this.context = context; }
 
+        
+        // This Method logs in a user using an authentication token
         [Route("TokenLogin")]
         [HttpGet]
         public AccountDTO Login([FromQuery] string token)
@@ -47,7 +50,8 @@ namespace MenU_API.Controllers
                 return null;
             }
         }
-
+        
+        // This Method logs in a user using credentials (username and password)
         [Route("LoginCredentials")]
         [HttpGet]
         public AccountDTO Login([FromQuery] string username,[FromQuery] string pass)
@@ -77,7 +81,43 @@ namespace MenU_API.Controllers
                 return null;
             }
         }
+        
+        // This method generates an authentication token, saves it in the database and returns it to the client
+        [Route("CreateToken")]
+        [HttpGet]
+        public string CreateToken()
+        {
+            bool isUnique = false;
+            string token = "";
+            while (!isUnique)
+            {
+                token = GeneralProcessing.GenerateAlphanumerical(16);
+                if (!context.TokenExists(token))
+                    isUnique = true;
+            }    
+            
+            AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
+            if(userDTO != null)
+            {
+                try
+                {
+                    context.SaveToken(userDTO.AccountId, token);
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                    return token;
+                }
+                catch (Exception)
+                {
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.Conflict;
+                }
+            }
+            else
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+            }
+            return "";
+        }
 
+        // This method logs the user out and removes it's auth token if one exists
         [Route("LogOut")]
         [HttpGet]
         public void LogOut()
@@ -93,7 +133,8 @@ namespace MenU_API.Controllers
                 Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
             }
         }
-
+        
+        // This method returns true if a user exists with the specified username and email address (for sign up purposes)
         [Route("Exists")]
         [HttpGet]
         public bool DoesExist([FromQuery] string username, [FromQuery] string email)
@@ -101,13 +142,22 @@ namespace MenU_API.Controllers
             Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
             return context.Exists(username, email);
         }
-
+        
+        // This method adds the specified user to the database
         [Route("SignUp")]
         [HttpGet]
         public bool SignUp([FromBody] AccountDTO acc)
         {
+            Random rnd = new Random();
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
-
+            string salt = "";
+            bool isUnique = false;
+            while (!isUnique)
+            {
+                salt = GeneralProcessing.GenerateAlphanumerical(8);
+                if (!context.SaltExists(salt))
+                    isUnique = false;
+            }
             if (userDTO != null)
             {
                 Account newAcc = new Account()
@@ -117,11 +167,10 @@ namespace MenU_API.Controllers
                     Username = acc.Username,
                     Email = acc.Email,
                     Pass = acc.Pass,
-                    Salt = acc.Salt,
-                    Iterations = acc.Iterations,
+                    Salt = salt,
+                    Iterations = rnd.Next(3000,21000),
                     DateOfBirth = acc.DateOfBirth,
                     AccountType = acc.AccountType,
-                    ProfilePicture = acc.ProfilePicture,
                     AccountStatus = acc.AccountStatus
                 };
 
@@ -144,5 +193,7 @@ namespace MenU_API.Controllers
                 return false;
             }
         }
+
+
     }
 }

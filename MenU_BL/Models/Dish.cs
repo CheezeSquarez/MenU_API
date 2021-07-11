@@ -27,7 +27,7 @@ namespace MenU_BL.Models
         public string DishName { get; set; }
         [Required]
         [StringLength(255)]
-        public string Description { get; set; }
+        public string DishDescription { get; set; }
         public int Restaurant { get; set; }
         public int DishStatus { get; set; }
         [Required]
