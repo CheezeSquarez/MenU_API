@@ -120,27 +120,18 @@ namespace MenU_API.Controllers
         // This method logs the user out and removes it's auth token if one exists
         [Route("LogOut")]
         [HttpGet]
-        public void LogOut([FromQuery] string token)
+        public void LogOut()
         {
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
-            try
+            if (userDTO != null)
             {
-                if (userDTO != null)
-                {
-                    HttpContext.Session.Clear();
-                    context.RemoveToken(token);
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                }
-                else
-                {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
-                }
+                HttpContext.Session.Clear();
+                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
             }
-            catch (Exception)
+            else
             {
-                Response.StatusCode = (int)System.Net.HttpStatusCode.Conflict;
+                Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
             }
-            
         }
         
         // This method returns true if a user exists with the specified username and email address (for sign up purposes)
