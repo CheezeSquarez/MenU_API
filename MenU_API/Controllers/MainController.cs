@@ -145,19 +145,11 @@ namespace MenU_API.Controllers
         
         // This method adds the specified user to the database
         [Route("SignUp")]
-        [HttpGet]
+        [HttpPost]
         public bool SignUp([FromBody] AccountDTO acc)
         {
-            Random rnd = new Random();
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
-            string salt = "";
-            bool isUnique = false;
-            while (!isUnique)
-            {
-                salt = GeneralProcessing.GenerateAlphanumerical(8);
-                if (!context.SaltExists(salt))
-                    isUnique = false;
-            }
+            
             if (userDTO != null)
             {
                 Account newAcc = new Account()
@@ -167,8 +159,8 @@ namespace MenU_API.Controllers
                     Username = acc.Username,
                     Email = acc.Email,
                     Pass = acc.Pass,
-                    Salt = salt,
-                    Iterations = rnd.Next(3000,21000),
+                    Salt = acc.Salt,
+                    Iterations = acc.Iterations,
                     DateOfBirth = acc.DateOfBirth,
                     AccountType = acc.AccountType,
                     AccountStatus = acc.AccountStatus
@@ -194,6 +186,52 @@ namespace MenU_API.Controllers
             }
         }
 
+        //This method returns the salt and number of iterations of the user with the specified username
+        [Route("GetSalt")]
+        [HttpGet]
+        public Dictionary<string, string> GetSaltAndIterations([FromQuery] string username)
+        {
+            Dictionary<string,string> returnDic = new Dictionary<string, string>();
+            try
+            {
+                returnDic.Add("Salt", context.GetSalt(username));
+                returnDic.Add("Iterations", context.GetIterations(username).ToString());
+                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+            }
+            catch (Exception)
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.Conflict;
+                returnDic = null;
+            }
+            return returnDic;
+        }
+
+        //This method generates a random unique salt and returns it
+        [Route("GenerateSalt")]
+        [HttpGet]
+        public string GenerateSalt()
+        {
+            try
+            {
+                string salt = "";
+                bool isUnique = false;
+                while (!isUnique)
+                {
+                    salt = GeneralProcessing.GenerateAlphanumerical(8);
+                    if (!context.SaltExists(salt))
+                        isUnique = false;
+                }
+
+                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                return salt;
+            }
+            catch
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.Conflict;
+                return "";
+            }
+            
+        }
 
     }
 }
