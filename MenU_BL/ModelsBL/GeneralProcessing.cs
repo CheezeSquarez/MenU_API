@@ -13,7 +13,7 @@ namespace MenU_BL.ModelsBL
         public static string GenerateAlphanumerical(int size)
         {
             char[] chars =
-           "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".ToCharArray();
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".ToCharArray();
             byte[] data = new byte[4 * size];
             using (RNGCryptoServiceProvider crypto = new RNGCryptoServiceProvider())
             {

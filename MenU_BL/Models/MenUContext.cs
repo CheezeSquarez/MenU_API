@@ -166,11 +166,19 @@ namespace MenU_BL.Models
             {
                 entity.Property(e => e.RestaurantPicture).HasDefaultValueSql("('/imgs/default_restaurant.png')");
 
+                entity.Property(e => e.RestaurantStatus).HasDefaultValueSql("((4))");
+
                 entity.HasOne(d => d.Owner)
                     .WithMany(p => p.Restaurants)
                     .HasForeignKey(d => d.OwnerId)
                     .OnDelete(DeleteBehavior.ClientSetNull)
                     .HasConstraintName("FK_Restaurant_Owner");
+
+                entity.HasOne(d => d.RestaurantStatusNavigation)
+                    .WithMany(p => p.Restaurants)
+                    .HasForeignKey(d => d.RestaurantStatus)
+                    .OnDelete(DeleteBehavior.ClientSetNull)
+                    .HasConstraintName("FK_Restaurant_RestaurantStatus");
             });
 
             modelBuilder.Entity<RestaurantTag>(entity =>

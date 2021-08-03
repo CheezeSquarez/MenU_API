@@ -40,10 +40,14 @@ namespace MenU_BL.Models
         [Required]
         [StringLength(255)]
         public string StreetNumber { get; set; }
+        public int RestaurantStatus { get; set; }
 
         [ForeignKey(nameof(OwnerId))]
         [InverseProperty(nameof(Account.Restaurants))]
         public virtual Account Owner { get; set; }
+        [ForeignKey(nameof(RestaurantStatus))]
+        [InverseProperty(nameof(ObjectStatus.Restaurants))]
+        public virtual ObjectStatus RestaurantStatusNavigation { get; set; }
         [InverseProperty(nameof(Dish.RestaurantNavigation))]
         public virtual ICollection<Dish> Dishes { get; set; }
         [InverseProperty(nameof(RestaurantTag.Restaurant))]

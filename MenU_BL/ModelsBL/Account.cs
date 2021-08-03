@@ -7,6 +7,6 @@ namespace MenU_BL.Models
 {
     partial class Account
     {
-        public 
+        
     }
 }

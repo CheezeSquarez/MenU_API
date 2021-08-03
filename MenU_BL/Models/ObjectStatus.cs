@@ -15,6 +15,7 @@ namespace MenU_BL.Models
         {
             Accounts = new HashSet<Account>();
             Dishes = new HashSet<Dish>();
+            Restaurants = new HashSet<Restaurant>();
             Reviews = new HashSet<Review>();
         }
 
@@ -29,6 +30,8 @@ namespace MenU_BL.Models
         public virtual ICollection<Account> Accounts { get; set; }
         [InverseProperty(nameof(Dish.DishStatusNavigation))]
         public virtual ICollection<Dish> Dishes { get; set; }
+        [InverseProperty(nameof(Restaurant.RestaurantStatusNavigation))]
+        public virtual ICollection<Restaurant> Restaurants { get; set; }
         [InverseProperty(nameof(Review.ReviewStatusNavigation))]
         public virtual ICollection<Review> Reviews { get; set; }
     }

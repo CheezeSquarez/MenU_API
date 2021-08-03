@@ -8,16 +8,17 @@ using MenU_BL.Models;
 using MenU_BL.ModelsBL;
 using MenU_API.DataTransferObjects;
 using System.Net.Http;
+using System.Reflection;
 
 namespace MenU_API.Controllers
 {
-    [Route("api")]
+    [Route("accounts")]
     [ApiController]
-    public class MainController : ControllerBase
+    public class AccountsController : ControllerBase
     {
         MenUContext context;
 
-        public MainController(MenUContext context) { this.context = context; }
+        public AccountsController(MenUContext context) { this.context = context; }
 
         
         // This Method logs in a user using an authentication token
@@ -30,38 +31,7 @@ namespace MenU_API.Controllers
             {
                 acc = context.Login(token);
             }
-            catch (Exception)
-            {
-                acc = null;
-            }
-
-            if (acc != null)
-            {
-                AccountDTO userDTO = new AccountDTO(acc);
-
-                HttpContext.Session.SetObject("account", userDTO);
-
-                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                return userDTO;
-            }
-            else
-            {
-                Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
-                return null;
-            }
-        }
-        
-        // This Method logs in a user using credentials (username and password)
-        [Route("LoginCredentials")]
-        [HttpGet]
-        public AccountDTO Login([FromQuery] string username,[FromQuery] string pass)
-        {
-            Account acc;
-            try
-            {
-                acc = context.Login(username, pass);
-            }
-            catch (Exception)
+            catch
             {
                 acc = null;
             }
@@ -82,38 +52,60 @@ namespace MenU_API.Controllers
             }
         }
         
+        // This Method logs in a user using credentials (username and password)
+        [Route("LoginCredentials")]
+        [HttpGet]
+        public AccountDTO Login([FromQuery] string username,[FromQuery] string pass)
+        {
+            Account acc = null;
+            try { acc = context.Login(username, pass); }
+            catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }
+
+            if (acc != null)
+            {
+                AccountDTO userDTO = new AccountDTO(acc);
+
+                HttpContext.Session.SetObject("user", userDTO);
+
+                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                return userDTO;
+            }
+            else
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.Unauthorized;
+                return null;
+            }
+        }
+        
         // This method generates an authentication token, saves it in the database and returns it to the client
         [Route("CreateToken")]
         [HttpGet]
         public string CreateToken()
         {
-            bool isUnique = false;
-            string token = "";
-            while (!isUnique)
+            try
             {
-                token = GeneralProcessing.GenerateAlphanumerical(16);
-                if (!context.TokenExists(token))
-                    isUnique = true;
-            }    
+                bool isUnique = false;
+                string token = "";
+                while (!isUnique)
+                {
+                    token = GeneralProcessing.GenerateAlphanumerical(16);
+                    if (!context.TokenExists(token))
+                        isUnique = true;
+                }    
             
-            AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
-            if(userDTO != null)
-            {
-                try
+                AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
+                if(userDTO != null)
                 {
-                    context.SaveToken(userDTO.AccountId, token);
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                    return token;
+                
+                        context.SaveToken(userDTO.AccountId, token);
+                        Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                        return token;
+                
                 }
-                catch (Exception)
-                {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.Conflict;
-                }
+                else
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
             }
-            else
-            {
-                Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
-            }
+            catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }
             return "";
         }
 
@@ -134,22 +126,13 @@ namespace MenU_API.Controllers
             }
         }
         
-        // This method returns true if a user exists with the specified username and email address (for sign up purposes)
-        [Route("Exists")]
-        [HttpGet]
-        public bool DoesExist([FromQuery] string username, [FromQuery] string email)
-        {
-            Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-            return context.Exists(username, email);
-        }
-        
         // This method adds the specified user to the database
         [Route("SignUp")]
         [HttpPost]
         public bool SignUp([FromBody] AccountDTO acc)
         {
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
-            
+
             if (userDTO != null)
             {
                 Account newAcc = new Account()
@@ -168,26 +151,27 @@ namespace MenU_API.Controllers
 
                 try
                 {
-                    context.AddAccount(newAcc);
+                    bool exists = context.Exists(acc.Username, acc.Email);
+                    if (!exists)
+                    {
+                        context.AddAccount(newAcc);
+                        Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                        return true;
+                    }
+                    else
+                        Response.StatusCode = Response.StatusCode = (int)System.Net.HttpStatusCode.Conflict;
                 }
-                catch (Exception)
-                {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.Conflict;
-                    return false;
-                }
-
-                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                return true;
+                catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }     
             }
             else
-            {
                 Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
-                return false;
-            }
+         
+            return false;
         }
+            
 
         //This method returns the salt and number of iterations of the user with the specified username
-        [Route("GetSalt")]
+        [Route("GetSaltAndIterations")]
         [HttpGet]
         public Dictionary<string, string> GetSaltAndIterations([FromQuery] string username)
         {
@@ -196,11 +180,14 @@ namespace MenU_API.Controllers
             {
                 returnDic.Add("Salt", context.GetSalt(username));
                 returnDic.Add("Iterations", context.GetIterations(username).ToString());
-                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                if(returnDic != null && returnDic.Count > 0)
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                else
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.NoContent;
             }
-            catch (Exception)
+            catch
             {
-                Response.StatusCode = (int)System.Net.HttpStatusCode.Conflict;
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
                 returnDic = null;
             }
             return returnDic;
@@ -219,19 +206,45 @@ namespace MenU_API.Controllers
                 {
                     salt = GeneralProcessing.GenerateAlphanumerical(8);
                     if (!context.SaltExists(salt))
-                        isUnique = false;
+                        isUnique = true;
                 }
+                if(salt != "")
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK; 
+                else
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.NoContent;
 
-                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                 return salt;
             }
             catch
             {
-                Response.StatusCode = (int)System.Net.HttpStatusCode.Conflict;
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
                 return "";
             }
             
         }
+
+        //To be Implemented
+
+        //[Route("UpdateAccountInfo")]
+        //[HttpPost]
+        //public void UpdateAccountInfo([FromBody] AccountDTO user)
+        //{
+        //    AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
+        //    try
+        //    {
+        //        if (userDTO != null && userDTO.AccountId == user.AccountId)
+        //        {
+                    
+        //            context.UpdateUser(userDTO.AccountId, );
+        //            Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+        //        }
+        //        else
+        //            Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+        //    }
+        //    catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }
+            
+        //}
+
 
     }
 }
