@@ -1,0 +1,3 @@
+INSERT INTO AccountType (TypeName) Values ('DefaultUser');
+INSERT INTO AccountType (TypeName) Values ('RestaurantOwner');
+INSERT INTO AccountType (TypeName) Values ('Admin');

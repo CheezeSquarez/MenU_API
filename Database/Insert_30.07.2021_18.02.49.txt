@@ -1,0 +1,4 @@
+INSERT INTO ObjectStatus (StatusName) Values ('Active');
+INSERT INTO ObjectStatus (StatusName) Values ('Hidden');
+INSERT INTO ObjectStatus (StatusName) Values ('Disabled');
+INSERT INTO ObjectStatus (StatusName) Values ('Pending');
