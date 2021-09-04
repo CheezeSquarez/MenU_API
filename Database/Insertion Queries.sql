@@ -83,3 +83,13 @@ INSERT INTO Tag (TagName) Values ('Vegitarian');
 INSERT INTO Tag (TagName) Values ('Kosher');
 INSERT INTO Tag (TagName) Values ('Salad');
 INSERT INTO Tag (TagName) Values ('Rice Bowl');
+
+--Demo Users
+INSERT INTO Account (Username, FirstName, LastName, Email, DateOfBirth, AccountType, Pass, AccountStatus, Salt, Iterations) VALUES ('IdoSadeh123', 'Ido', 'Sadeh', 'idosadeh@rosenfeld.com',GETDATE(), 1, 'aafeeba6959ebeeb96519d5dcf0bcc069f81e4bb56c246d04872db92666e6d4b', 1, '12345678', 14000);
+INSERT INTO Account (Username, FirstName, LastName, Email, DateOfBirth, AccountType, Pass, AccountStatus, Salt, Iterations) VALUES ('MitziHaHatool', 'Mitzi', 'HaHatool', 'mitzi@hahatool.com',GETDATE(), 1, 'ec81882d4a11906cd6e58e576fbcbb1a4e7893bd18cb050660bd55ed6dad25fa', 1, 'x4fqvc669', 14000);
+--Demo Restaurant
+INSERT INTO [dbo].[Restaurant] ([RestaurantName],[StreetName],[OwnerID],[City],[StreetNumber],[RestaurantStatus])
+     VALUES
+('Cat Meat Express','Kfar Yonah',2,'Givat Lavi',8,1)
+
+
