@@ -12,8 +12,4 @@
     <ProjectReference Include="..\MenU_BL\MenU_BL.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
-
 </Project>
