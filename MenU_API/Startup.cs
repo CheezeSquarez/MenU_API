@@ -11,6 +11,8 @@ using MenU_BL.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Configuration;
 using Microsoft.Extensions.Configuration;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MenU_API
 {
@@ -30,8 +32,9 @@ namespace MenU_API
         public void ConfigureServices(IServiceCollection services)
         {
             //Add the Controllers to the service!
-            //without this line of code no routing to the AmericanQueustionsControllerClass will be done
-            services.AddControllers();
+            //Add Controllers and set the Json Serializer to handle loop referencing
+            services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions
+                        .ReferenceHandler = ReferenceHandler.Preserve);
 
             #region Add Session support
             //The following two commands set the Session state to work!
