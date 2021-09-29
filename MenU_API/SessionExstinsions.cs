@@ -26,6 +26,7 @@ namespace MenU_API
                 return default(T);
             }
             return JsonSerializer.Deserialize<T>(data, options);
+
         }
 
         public static void SetObject(this ISession session, string key, object value)
