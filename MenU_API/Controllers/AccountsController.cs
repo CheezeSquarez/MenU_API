@@ -224,27 +224,37 @@ namespace MenU_API.Controllers
             
         }
 
-        //To be Implemented
 
-        //[Route("UpdateAccountInfo")]
-        //[HttpPost]
-        //public void UpdateAccountInfo([FromBody] AccountDTO user)
-        //{
-        //    AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
-        //    try
-        //    {
-        //        if (userDTO != null && userDTO.AccountId == user.AccountId)
-        //        {
-                    
-        //            context.UpdateUser(userDTO.AccountId, );
-        //            Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-        //        }
-        //        else
-        //            Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
-        //    }
-        //    catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }
-            
-        //}
+        [Route("UpdateAccountInfo")]
+        [HttpPost]
+        public void UpdateAccountInfo([FromBody] AccountDTO user)
+        {
+            AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
+            try
+            {
+                if (userDTO != null && userDTO.AccountId == user.AccountId)
+                {
+                    List<string> userInfo = new List<string>();
+                    userInfo.Add(user.Username);
+                    userInfo.Add(user.FirstName);
+                    userInfo.Add(user.LastName);
+                    try
+                    {
+                        Account updated = context.UpdateUser(userDTO.AccountId, userInfo);
+                        HttpContext.Session.SetObject("user", new AccountDTO(updated));
+                        Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                    }
+                    catch (UniqueKeyInUseException e)
+                    {
+                        Response.StatusCode = (int)System.Net.HttpStatusCode.UnprocessableEntity;
+                    } 
+                }
+                else
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+            }
+            catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }
+
+        }
 
 
     }
