@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
-using MenU_BL.ModelsBL;
 using System.Linq;
 
 namespace MenU_BL.Models
@@ -53,21 +52,6 @@ namespace MenU_BL.Models
         public List<Review> GetDishReviews(int id) => this.Reviews.Where(x => x.Dish == id).ToList();
         public List<Restaurant> GetPendingRestraurants() => this.Restaurants.Where(x => x.RestaurantStatus == this.ObjectStatuses.FirstOrDefault(y => y.StatusName == "Pending").StatusId).ToList();
         public List<Restaurant> GetOwnerRestaurants(int ownerId) => this.Restaurants.Where(x => x.OwnerId == ownerId).ToList();
-        public Account UpdateUser(int userId, List<string> info) 
-        {
-            Account temp = this.Accounts.FirstOrDefault(x => x.AccountId == userId);
-            if(info[0] != temp.Username)
-            {
-                if (!Exists(info[0]))
-                    temp.Username = info[0];
-                else
-                    throw new UniqueKeyInUseException("Username is already taken", info[0]);
-            }
-            temp.FirstName = info[1];
-            temp.LastName = info[2];
-
-            this.SaveChanges();
-            return temp;
-        }
+        
     }
 }

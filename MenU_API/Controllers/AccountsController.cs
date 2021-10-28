@@ -5,11 +5,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MenU_BL.Models;
-using MenU_BL.ModelsBL;
 using MenU_API.DataTransferObjects;
 using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
+using MenU_API.Sevices;
 
 namespace MenU_API.Controllers
 {
@@ -53,13 +53,23 @@ namespace MenU_API.Controllers
             }
         }
         
-        // This Method logs in a user using credentials (username and password)
+        // This Method logs in a user using credentials (Item1 => username and Item2 => password)
         [Route("LoginCredentials")]
-        [HttpGet]
-        public AccountDTO Login([FromQuery] string username,[FromQuery] string pass)
+        [HttpPost]
+        public AccountDTO Login([FromBody] Credentials credentials )
         {
             Account acc = null;
-            try { acc = context.Login(username, pass); }
+
+
+            try 
+            {
+                // Get salt and No. of iterations from DB
+                string salt = context.GetSalt(credentials.username);
+                int iterations = context.GetIterations(credentials.username);
+                // Hashes the password
+                string hashedPassword = GeneralProcessing.PlainTextToHashedPassword(credentials.password, salt, iterations);
+                acc = context.Login(credentials.username, hashedPassword); 
+            }
             catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }
 
             if (acc != null)
@@ -169,30 +179,6 @@ namespace MenU_API.Controllers
          
             return false;
         }
-            
-
-        //This method returns the salt and number of iterations of the user with the specified username
-        [Route("GetSaltAndIterations")]
-        [HttpGet]
-        public Dictionary<string, string> GetSaltAndIterations([FromQuery] string username)
-        {
-            Dictionary<string,string> returnDic = new Dictionary<string, string>();
-            try
-            {
-                returnDic.Add("Salt", context.GetSalt(username));
-                returnDic.Add("Iterations", context.GetIterations(username).ToString());
-                if(returnDic != null && returnDic.Count > 0)
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                else
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.NoContent;
-            }
-            catch
-            {
-                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-                returnDic = null;
-            }
-            return returnDic;
-        }
 
         //This method generates a random unique salt and returns it
         [Route("GenerateSalt")]
@@ -240,11 +226,12 @@ namespace MenU_API.Controllers
                     userInfo.Add(user.LastName);
                     try
                     {
-                        Account updated = context.UpdateUser(userDTO.AccountId, userInfo);
+                        Account updated = context.Login(userDTO.Username, user.Pass);
+                        updated = updated.UpdateUser(userInfo, context);
                         HttpContext.Session.SetObject("user", new AccountDTO(updated));
                         Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                     }
-                    catch (UniqueKeyInUseException e)
+                    catch (UniqueKeyInUseException)
                     {
                         Response.StatusCode = (int)System.Net.HttpStatusCode.UnprocessableEntity;
                     } 
