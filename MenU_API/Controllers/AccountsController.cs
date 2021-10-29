@@ -107,11 +107,9 @@ namespace MenU_API.Controllers
                 AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
                 if(userDTO != null)
                 {
-                
                         context.SaveToken(userDTO.AccountId, token);
                         Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                         return token;
-                
                 }
                 else
                     Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
@@ -143,8 +141,26 @@ namespace MenU_API.Controllers
         public bool SignUp([FromBody] AccountDTO acc)
         {
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
+            string salt = "";
+            int iterations = GeneralProcessing.GenerateCryptoRandomINT(1000, 100000);
+            string hashed = acc.Pass;
+            try
+            {
+                bool isUnique = false;
+                while (!isUnique)
+                {
+                    salt = GeneralProcessing.GenerateAlphanumerical(8);
+                    if (!context.SaltExists(salt))
+                        isUnique = true;
+                }
+                hashed = GeneralProcessing.PlainTextToHashedPassword(hashed, salt, iterations);
+            }
+            catch
+            {
 
-            if (userDTO != null)
+            }
+
+            if (userDTO == null)
             {
                 Account newAcc = new Account()
                 {
@@ -152,9 +168,9 @@ namespace MenU_API.Controllers
                     LastName = acc.LastName,
                     Username = acc.Username,
                     Email = acc.Email,
-                    Pass = acc.Pass,
-                    Salt = acc.Salt,
-                    Iterations = acc.Iterations,
+                    Pass = hashed,
+                    Salt = salt,
+                    Iterations = iterations,
                     DateOfBirth = acc.DateOfBirth,
                     AccountType = acc.AccountType,
                     AccountStatus = acc.AccountStatus

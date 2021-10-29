@@ -36,7 +36,7 @@ namespace MenU_BL.Models
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Server = localhost\\SQLEXPRESS01; Database=MenU; Trusted_Connection=true");
+                optionsBuilder.UseSqlServer("Server = localhost\\SQLEXPRESS; Database=MenU; Trusted_Connection=true");
             }
         }
 
@@ -69,6 +69,8 @@ namespace MenU_BL.Models
             {
                 entity.HasKey(e => e.AuthToken)
                     .HasName("PK_AccountAuthToken_AuthToken");
+
+                entity.Property(e => e.CreationDate).HasDefaultValueSql("(getdate())");
 
                 entity.HasOne(d => d.Account)
                     .WithMany(p => p.AccountAuthTokens)
