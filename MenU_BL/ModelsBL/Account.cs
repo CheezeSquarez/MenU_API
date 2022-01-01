@@ -24,5 +24,11 @@ namespace MenU_BL.Models
             context.SaveChanges();
             return this;
         }
+        public void ChangePass(int iterations, string salt, string hash)
+        {
+            this.Iterations = iterations;
+            this.Salt = salt;
+            this.Pass = hash;
+        }
     }
 }

@@ -12,4 +12,8 @@
     <ProjectReference Include="..\MenU_BL\MenU_BL.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\imgs\pfp\default\" />
+  </ItemGroup>
+
 </Project>

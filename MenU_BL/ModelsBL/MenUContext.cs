@@ -37,14 +37,32 @@ namespace MenU_BL.Models
             this.Dishes.Add(d);
             this.SaveChanges();
         }
-        public string GetSalt(string username) => this.Accounts.FirstOrDefault(x => x.Username == username).Salt;
-        public int GetIterations(string username) => this.Accounts.FirstOrDefault(x => x.Username == username).Iterations;
+        public string GetSalt(string username)
+        {
+            Account a = this.Accounts.FirstOrDefault(x => x.Username == username);
+            if (a != null)
+                return a.Salt;
+            return null;
+        }
+        public int GetIterations(string username)
+        {
+            Account a = this.Accounts.FirstOrDefault(x => x.Username == username);
+            if (a != null)
+                return a.Iterations;
+            return -1;
+        }
         public bool Exists(string username, string email) => this.Accounts.Any(x => x.Email == email || x.Username == username);
         public bool Exists(string username) => this.Accounts.Any(x => x.Username == username);
         public bool SaltExists(string salt) => this.Accounts.Any(x => x.Salt == salt);
         public bool TokenExists(string token) => this.AccountAuthTokens.Any(x => x.AuthToken == token);
         public Account Login(string username, string hashedPass) => this.Accounts.FirstOrDefault(x => x.Username == username && x.Pass == hashedPass);
-        public Account Login(string token) => this.AccountAuthTokens.FirstOrDefault(x => x.AuthToken == token).Account;
+        public Account Login(string token)
+        {
+            AccountAuthToken a = this.AccountAuthTokens.FirstOrDefault(x => x.AuthToken == token);
+            if (a != null)
+                return a.Account;
+            return null;
+        }
         public Restaurant FindRestaurantById(int id) => this.Restaurants.FirstOrDefault(x => x.RestaurantId == id);
         public List<Restaurant> FindRestaurantWithLetters(string letters) => this.Restaurants.Where(x => x.RestaurantName.Contains(letters)).ToList();
         public List<Review> GetUserReviews(int id) => this.Reviews.Where(x => x.Reviewer == id).ToList();
@@ -52,6 +70,7 @@ namespace MenU_BL.Models
         public List<Review> GetDishReviews(int id) => this.Reviews.Where(x => x.Dish == id).ToList();
         public List<Restaurant> GetPendingRestraurants() => this.Restaurants.Where(x => x.RestaurantStatus == this.ObjectStatuses.FirstOrDefault(y => y.StatusName == "Pending").StatusId).ToList();
         public List<Restaurant> GetOwnerRestaurants(int ownerId) => this.Restaurants.Where(x => x.OwnerId == ownerId).ToList();
+        public List<Tag> GetAllTags() => this.Tags.ToList();
         
     }
 }

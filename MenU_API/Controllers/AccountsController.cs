@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Text.Json;
 using MenU_API.Sevices;
+using System.IO;
 
 namespace MenU_API.Controllers
 {
@@ -27,14 +28,18 @@ namespace MenU_API.Controllers
         [HttpGet]
         public AccountDTO Login([FromQuery] string token)
         {
-            Account acc;
+            Account acc = null;
             try
             {
                 acc = context.Login(token);
             }
-            catch
+            catch (Microsoft.Data.SqlClient.SqlException)
             {
-                acc = null;
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            }
+            catch (Exception e)
+            {
+                //Log Error
             }
 
             if (acc != null)
@@ -67,10 +72,23 @@ namespace MenU_API.Controllers
                 string salt = context.GetSalt(credentials.username);
                 int iterations = context.GetIterations(credentials.username);
                 // Hashes the password
-                string hashedPassword = GeneralProcessing.PlainTextToHashedPassword(credentials.password, salt, iterations);
-                acc = context.Login(credentials.username, hashedPassword); 
+                if(salt != null && iterations != -1)
+                {
+                    string hashedPassword = GeneralProcessing.PlainTextToHashedPassword(credentials.password, salt, iterations);
+                    acc = context.Login(credentials.username, hashedPassword);
+                }
+                
             }
-            catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }
+            catch (Microsoft.Data.SqlClient.SqlException)
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            }
+            catch (Exception ex)
+            {
+                //Log Error
+            }
+            
+            
 
             if (acc != null)
             {
@@ -114,7 +132,14 @@ namespace MenU_API.Controllers
                 else
                     Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
             }
-            catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }
+            catch (Microsoft.Data.SqlClient.SqlException)
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            }
+            catch (Exception e) 
+            { 
+                //Log Error
+            }
             return "";
         }
 
@@ -155,9 +180,13 @@ namespace MenU_API.Controllers
                 }
                 hashed = GeneralProcessing.PlainTextToHashedPassword(hashed, salt, iterations);
             }
-            catch
+            catch (Microsoft.Data.SqlClient.SqlException)
             {
-
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            }
+            catch (Exception e)
+            {
+                //Log Error
             }
 
             if (userDTO == null)
@@ -218,34 +247,39 @@ namespace MenU_API.Controllers
 
                 return salt;
             }
-            catch
+            catch (Microsoft.Data.SqlClient.SqlException)
             {
                 Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-                return "";
             }
-            
+            catch (Exception e)
+            {
+                //Log Error
+            }
+            return "";
+
         }
 
 
         [Route("UpdateAccountInfo")]
         [HttpPost]
-        public void UpdateAccountInfo([FromBody] AccountDTO user)
+        public bool UpdateAccountInfo([FromBody] Account targetAccount )
         {
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
             try
             {
-                if (userDTO != null && userDTO.AccountId == user.AccountId)
+                if (userDTO != null && userDTO.AccountId == targetAccount.AccountId)
                 {
                     List<string> userInfo = new List<string>();
-                    userInfo.Add(user.Username);
-                    userInfo.Add(user.FirstName);
-                    userInfo.Add(user.LastName);
+                    userInfo.Add(targetAccount.Username);
+                    userInfo.Add(targetAccount.FirstName);
+                    userInfo.Add(targetAccount.LastName);
                     try
                     {
-                        Account updated = context.Login(userDTO.Username, user.Pass);
+                        Account updated = context.Login(userDTO.Username, targetAccount.Pass);
                         updated = updated.UpdateUser(userInfo, context);
                         HttpContext.Session.SetObject("user", new AccountDTO(updated));
                         Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                        return true;
                     }
                     catch (UniqueKeyInUseException)
                     {
@@ -256,9 +290,89 @@ namespace MenU_API.Controllers
                     Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
             }
             catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }
-
+            return false;
         }
 
+        [Route("GetDefaultPfps")]
+        [HttpGet]
+        public List<string> GetDefaultPfps()
+        {
+            List<string> urls = Directory.GetFiles(@"wwwroot\imgs\pfp\default").ToList();
+            urls = urls.Select(x => x.Substring(8)).ToList();
+            if(urls.Count > 0)
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                return urls;
+            }
+            else
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+                return null;
+            }
+                
+        }
 
+        [Route("ChangePass")]
+        [HttpPost]
+        public bool ChangePass(Credentials creds)
+        {
+            AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
+            try
+            {
+                if (userDTO != null && userDTO.AccountId == creds.id)
+                {
+                    string salt = "";
+                    int iterations = GeneralProcessing.GenerateCryptoRandomINT(1000, 100000);
+                    string hashed = creds.password;
+                    bool isUnique = false;
+                    while (!isUnique)
+                    {
+                        salt = GeneralProcessing.GenerateAlphanumerical(8);
+                        if (!context.SaltExists(salt))
+                            isUnique = true;
+                    }
+                    hashed = GeneralProcessing.PlainTextToHashedPassword(hashed, salt, iterations);
+                    Account loggedIn = context.Login(userDTO.Username, userDTO.Pass);
+                    loggedIn.ChangePass(iterations, salt, hashed);
+                    context.SaveChanges();
+                    HttpContext.Session.SetObject("user", new AccountDTO(loggedIn));
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                    return true;
+
+                }
+                else
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+            }
+            catch
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            }
+            return false;
+        }
+
+        [Route("GetAllTags")]
+        [HttpGet]
+        public List<Tag> GetAllTags()
+        {
+            try
+            {
+                List<Tag> tags = context.GetAllTags();
+                if(tags.Count > 0)
+                {
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                    return tags;
+                }
+                else
+                {
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+                    return null;
+                }
+            }
+            catch
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            }
+            return null;
+        }
     }
 }
