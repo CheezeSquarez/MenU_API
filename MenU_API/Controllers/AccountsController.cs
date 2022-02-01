@@ -350,29 +350,34 @@ namespace MenU_API.Controllers
             return false;
         }
 
-        [Route("GetAllTags")]
-        [HttpGet]
-        public List<Tag> GetAllTags()
+        [Route("AddRestaurant")]
+        [HttpPost]
+        public bool AddRestaurant([FromBody] Restaurant r)
         {
+            AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
             try
             {
-                List<Tag> tags = context.GetAllTags();
-                if(tags.Count > 0)
+                if (userDTO != null && userDTO.AccountType == 2)
                 {
+                    List<RestaurantTag> tags = r.RestaurantTags.ToList();
+                    List<Dish> dishes = r.Dishes.ToList();
+                    bool hasWorked = context.AddDishes(dishes);
+                    hasWorked = hasWorked && context.UpdateRestaurant(r);
                     Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                    return tags;
+                    return hasWorked;
                 }
                 else
                 {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-                    return null;
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
                 }
             }
             catch
             {
                 Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+
             }
-            return null;
+            return false;
         }
+
     }
 }

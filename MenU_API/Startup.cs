@@ -35,6 +35,8 @@ namespace MenU_API
             //Add Controllers and set the Json Serializer to handle loop referencing
             services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions
                         .ReferenceHandler = ReferenceHandler.Preserve);
+            services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions
+                        .PropertyNameCaseInsensitive = true);
 
             #region Add Session support
             //The following two commands set the Session state to work!

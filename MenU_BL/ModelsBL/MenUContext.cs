@@ -71,6 +71,63 @@ namespace MenU_BL.Models
         public List<Restaurant> GetPendingRestraurants() => this.Restaurants.Where(x => x.RestaurantStatus == this.ObjectStatuses.FirstOrDefault(y => y.StatusName == "Pending").StatusId).ToList();
         public List<Restaurant> GetOwnerRestaurants(int ownerId) => this.Restaurants.Where(x => x.OwnerId == ownerId).ToList();
         public List<Tag> GetAllTags() => this.Tags.ToList();
-        
+        public List<Allergen> GetAllAllergens() => this.Allergens.ToList();
+        public Dish FindDishByRestaurant(int id) => this.Dishes.FirstOrDefault(x => x.Restaurant == id);
+        public Dish FindDishByID(int id) => this.Dishes.FirstOrDefault(x => x.DishId == id);
+        public bool UpdateDish(Dish d)
+        {
+            Dish update = FindDishByID(d.DishId);
+            if (update != null)
+            {
+                update.DishStatus = d.DishStatus;
+                update.DishPicture = d.DishPicture; 
+                update.DishName = d.DishName; 
+                update.DishDescription = d.DishDescription;
+                update.AllergenInDishes = d.AllergenInDishes;
+                update.Restaurant = d.Restaurant;
+                return true;
+            }
+            return false;
+        }
+        public Restaurant FindRestaurantByOwner(int id) => Restaurants.FirstOrDefault(x => x.OwnerId == id);
+        public Restaurant FindRestaurantByID(int id) => Restaurants.FirstOrDefault(x => x.RestaurantId == id);
+        public bool UpdateRestaurant(Restaurant r)
+        {
+            Restaurant update = FindRestaurantByID(r.RestaurantId);
+            if (update != null)
+            {
+                update.OwnerId = r.OwnerId;
+                update.RestaurantName = r.RestaurantName;
+                update.RestaurantPicture = r.RestaurantPicture;
+                update.RestaurantStatus = r.RestaurantStatus;
+                update.RestaurantTags = r.RestaurantTags;
+                update.StreetName = r.StreetName;
+                update.StreetNumber = r.StreetNumber;
+                foreach (RestaurantTag rT in r.RestaurantTags)
+                {
+                    this.RestaurantTags.Add(new RestaurantTag() { RestaurantId = rT.RestaurantId, TagId = rT.TagId });
+                }
+                return true;
+            }
+            return false;
+        }
+
+        public bool AddDishes(List<Dish> dishes)
+        {
+            if(dishes != null)
+            {
+                foreach (Dish dish in dishes)
+                {
+                    foreach (DishTag dT in dish.DishTags)
+                    {
+                        this.DishTags.Add(new DishTag() { DishId = dT.DishId, TagId = dT.TagId, });
+                    }
+                    UpdateDish(dish);
+                }
+                return true;
+            }
+            return false;
+        }
+
     }
 }
