@@ -206,17 +206,29 @@ namespace MenU_API.Controllers
 
         [Route("AddRestaurant")]
         [HttpPost]
-        public bool AddRestaurant([FromBody] Restaurant r)
+        public bool AddRestaurant([FromBody] RestaurantDTO r)
         {
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
             try
             {
                 if (userDTO != null && userDTO.AccountType == 2)
                 {
-                    List<RestaurantTag> tags = r.RestaurantTags.ToList();
-                    List<Dish> dishes = r.Dishes.ToList();
+                    List<DishDTO> dishDTOs = r.Dishes.ToList();
+                    List<Dish> dishes = new List<Dish>();
+                    foreach(DishDTO dish in dishDTOs)
+                    {
+                        Dish d = dish.Dish;
+                        d.DishTags = dish.Tags;
+                        d.AllergenInDishes = dish.AllergenInDishes;
+                        dishes.Add(d);
+                    }
+
                     bool hasWorked = context.AddDishes(dishes);
-                    hasWorked = hasWorked && context.UpdateRestaurant(r);
+
+                    Restaurant restaurant = r.Restaurant;
+                    restaurant.RestaurantTags = r.RestaurantTags.ToList();
+                    hasWorked = hasWorked && context.UpdateRestaurant(restaurant);
+
                     Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
                     return hasWorked;
                 }

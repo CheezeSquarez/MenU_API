@@ -83,7 +83,6 @@ namespace MenU_BL.Models
                 update.DishPicture = d.DishPicture; 
                 update.DishName = d.DishName; 
                 update.DishDescription = d.DishDescription;
-                update.AllergenInDishes = d.AllergenInDishes;
                 update.Restaurant = d.Restaurant;
                 return true;
             }
@@ -121,6 +120,10 @@ namespace MenU_BL.Models
                     foreach (DishTag dT in dish.DishTags)
                     {
                         this.DishTags.Add(new DishTag() { DishId = dT.DishId, TagId = dT.TagId, });
+                    }
+                    foreach(AllergenInDish aG in dish.AllergenInDishes)
+                    {
+                        this.AllergenInDishes.Add(new AllergenInDish() { AllergenId = aG.AllergenId, DishId = aG.DishId });
                     }
                     UpdateDish(dish);
                 }
