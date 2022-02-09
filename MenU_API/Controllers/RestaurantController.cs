@@ -211,7 +211,7 @@ namespace MenU_API.Controllers
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
             try
             {
-                if (userDTO != null && userDTO.AccountType == 2)
+                if (userDTO != null && userDTO.AccountType == 2 && userDTO.AccountId == r.Restaurant.OwnerId)
                 {
                     List<DishDTO> dishDTOs = r.Dishes.ToList();
                     List<Dish> dishes = new List<Dish>();

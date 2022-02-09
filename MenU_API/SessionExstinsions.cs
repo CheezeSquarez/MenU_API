@@ -40,7 +40,7 @@ namespace MenU_API
             session.SetString(key, JsonSerializer.Serialize(value, options));
         }
 
-        // Convert an object to a byte array
+        ////Convert an object to a byte array
         //public static void SetObject(this ISession session, string key, object value)
         //{
         //    BinaryFormatter bf = new BinaryFormatter();
@@ -61,7 +61,7 @@ namespace MenU_API
         //        memStream.Seek(0, SeekOrigin.Begin);
         //        var obj = binForm.Deserialize(memStream);
         //        if (obj is T)
-        //            return (T) obj;
+        //            return (T)obj;
         //        return default(T);
         //    }
         //}
