@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace MenU_BL.Models
 {
@@ -17,10 +19,13 @@ namespace MenU_BL.Models
             this.AccountAuthTokens.Add(new AccountAuthToken() { AccountId = id, AuthToken = token });
             this.SaveChanges();
         }
-        public void AddRestaurant(Restaurant r)
+        public Restaurant AddRestaurant(Restaurant r)
         {
             this.Restaurants.Add(r);
             this.SaveChanges();
+
+            Restaurant added = this.Restaurants.FirstOrDefault(x => x.RestaurantName == r.RestaurantName && x.City == r.City && x.StreetName == r.StreetName && x.OwnerId == r.OwnerId);
+            return added;
         }
         public void AddAccount(Account acc)
         {
@@ -30,11 +35,6 @@ namespace MenU_BL.Models
         public void AddReview(Review r)
         {
             this.Reviews.Add(r);
-            this.SaveChanges();
-        }
-        public void AddDish(Dish d)
-        {
-            this.Dishes.Add(d);
             this.SaveChanges();
         }
         public string GetSalt(string username)
@@ -55,16 +55,36 @@ namespace MenU_BL.Models
         public bool Exists(string username) => this.Accounts.Any(x => x.Username == username);
         public bool SaltExists(string salt) => this.Accounts.Any(x => x.Salt == salt);
         public bool TokenExists(string token) => this.AccountAuthTokens.Any(x => x.AuthToken == token);
-        public Account Login(string username, string hashedPass) => this.Accounts.FirstOrDefault(x => x.Username == username && x.Pass == hashedPass);
+        public Account Login(string username, string hashedPass) 
+        {
+            return this.Accounts
+                 .Include(x => x.Restaurants)
+                 .ThenInclude(r => r.Dishes).ThenInclude(a => a.DishTags)
+                 .Include(b => b.Reviews)
+                 .Where(x => x.Username == username && x.Pass == hashedPass).FirstOrDefault();
+        }
         public Account Login(string token)
         {
             AccountAuthToken a = this.AccountAuthTokens.FirstOrDefault(x => x.AuthToken == token);
             if (a != null)
-                return a.Account;
+            {
+                Account acc = this.Accounts
+                    .Include(x => x.Restaurants)
+                    .ThenInclude(r => r.Dishes).ThenInclude(a => a.DishTags)
+                    .Include(b => b.Reviews)
+                    .Where(y => y.AccountId == a.AccountId).FirstOrDefault();
+                return acc;
+            }
             return null;
         }
-        public Restaurant FindRestaurantById(int id) => this.Restaurants.FirstOrDefault(x => x.RestaurantId == id);
-        public List<Restaurant> FindRestaurantWithLetters(string letters) => this.Restaurants.Where(x => x.RestaurantName.Contains(letters)).ToList();
+        public Restaurant FindRestaurantById(int id)
+        {
+            return this.Restaurants
+                .Include(x => x.RestaurantTags)
+                .Include(y => y.Dishes).ThenInclude(z => z.AllergenInDishes)
+                .Include(a => a.Dishes).ThenInclude(b => b.DishTags).Where(c => c.RestaurantId == id).FirstOrDefault();
+        }
+        public List<Restaurant> FindRestaurantWithLetters(string letters) => this.Restaurants.Where(x => x.RestaurantName.Contains(letters) && x.RestaurantId != 0).ToList();
         public List<Review> GetUserReviews(int id) => this.Reviews.Where(x => x.Reviewer == id).ToList();
         public List<Review> GetRestaurantReviews(int id) => this.Reviews.Where(x => x.DishNavigation.Restaurant == id).ToList();
         public List<Review> GetDishReviews(int id) => this.Reviews.Where(x => x.Dish == id).ToList();
@@ -73,7 +93,12 @@ namespace MenU_BL.Models
         public List<Tag> GetAllTags() => this.Tags.ToList();
         public List<Allergen> GetAllAllergens() => this.Allergens.ToList();
         public Dish FindDishByRestaurant(int id) => this.Dishes.FirstOrDefault(x => x.Restaurant == id);
-        public Dish FindDishByID(int id) => this.Dishes.FirstOrDefault(x => x.DishId == id);
+        public Dish FindDishByID(int id) =>
+            this.Dishes.Include(a => a.Reviews).ThenInclude(b => b.ReviewerNavigation)
+            .Include(c => c.RestaurantNavigation)
+            .Include(d => d.AllergenInDishes)
+            .Include(e => e.DishTags)
+            .Where(x => x.DishId == id).FirstOrDefault();
         public bool UpdateDish(Dish d)
         {
             Dish update = FindDishByID(d.DishId);
@@ -88,8 +113,14 @@ namespace MenU_BL.Models
             }
             return false;
         }
-        public Restaurant FindRestaurantByOwner(int id) => Restaurants.FirstOrDefault(x => x.OwnerId == id);
-        public Restaurant FindRestaurantByID(int id) => Restaurants.FirstOrDefault(x => x.RestaurantId == id);
+        public Restaurant FindRestaurantByOwner(int id) => Restaurants
+            .Include(x => x.RestaurantTags)
+                .Include(y => y.Dishes).ThenInclude(z => z.AllergenInDishes)
+                .Include(a => a.Dishes).ThenInclude(b => b.DishTags).Where(x => x.OwnerId == id).FirstOrDefault();
+        public Restaurant FindRestaurantByID(int id) => Restaurants
+            .Include(x => x.RestaurantTags)
+                .Include(y => y.Dishes).ThenInclude(z => z.AllergenInDishes)
+                .Include(a => a.Dishes).ThenInclude(b => b.DishTags).Where(x => x.RestaurantId == id).FirstOrDefault();
         public bool UpdateRestaurant(Restaurant r)
         {
             Restaurant update = FindRestaurantByID(r.RestaurantId);
@@ -102,34 +133,39 @@ namespace MenU_BL.Models
                 update.RestaurantTags = r.RestaurantTags;
                 update.StreetName = r.StreetName;
                 update.StreetNumber = r.StreetNumber;
-                foreach (RestaurantTag rT in r.RestaurantTags)
-                {
-                    this.RestaurantTags.Add(new RestaurantTag() { RestaurantId = rT.RestaurantId, TagId = rT.TagId });
-                }
+                
                 return true;
             }
             return false;
         }
 
-        public bool AddDishes(List<Dish> dishes)
+        public Dish AddDish(Dish d)
         {
-            if(dishes != null)
-            {
-                foreach (Dish dish in dishes)
-                {
-                    foreach (DishTag dT in dish.DishTags)
-                    {
-                        this.DishTags.Add(new DishTag() { DishId = dT.DishId, TagId = dT.TagId, });
-                    }
-                    foreach(AllergenInDish aG in dish.AllergenInDishes)
-                    {
-                        this.AllergenInDishes.Add(new AllergenInDish() { AllergenId = aG.AllergenId, DishId = aG.DishId });
-                    }
-                    UpdateDish(dish);
-                }
-                return true;
-            }
-            return false;
+            this.Dishes.Add(d);
+            this.SaveChanges();
+            
+            Dish dish = this.Dishes.FirstOrDefault(x => x.DishName == d.DishName && x.DishDescription == d.DishDescription && x.Restaurant == x.Restaurant);
+            return dish;
+        }
+        public void AddAllRestaurantTags(List<RestaurantTag> restaurantTags)
+        {
+            foreach(RestaurantTag tag in restaurantTags)
+                this.RestaurantTags.Add(tag);
+            this.SaveChanges();
+        }
+
+        public void AddAllDishTags(List<DishTag> dishTags)
+        {
+            foreach (DishTag tag in dishTags)
+                this.DishTags.Add(tag);
+            this.SaveChanges();
+        }
+
+        public void AddAllAllergensToDish(List<AllergenInDish> allergensInDish)
+        {
+            foreach(AllergenInDish allergenInDish in allergensInDish)
+                this.AllergenInDishes.Add(allergenInDish);
+            this.SaveChanges();
         }
 
     }

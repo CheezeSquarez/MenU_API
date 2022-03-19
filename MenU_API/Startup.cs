@@ -54,7 +54,6 @@ namespace MenU_API
             string connectionString = this.Configuration.GetConnectionString("MenU");
 
             services.AddDbContext<MenUContext>(options => options
-                                                                .UseLazyLoadingProxies()
                                                                 .UseSqlServer(connectionString));
             #endregion
         }

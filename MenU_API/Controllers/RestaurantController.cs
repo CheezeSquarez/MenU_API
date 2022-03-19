@@ -71,7 +71,7 @@ namespace MenU_API.Controllers
             return null;
         }
 
-        [Route("FindRestaurantByLetters")]
+        [Route("FindRestaurantsByLetters")]
         [HttpGet]
         public List<Restaurant> FindRestaurantsByLetters(string letters)
         {
@@ -211,31 +211,64 @@ namespace MenU_API.Controllers
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
             try
             {
-                if (userDTO != null && userDTO.AccountType == 2 && userDTO.AccountId == r.Restaurant.OwnerId)
-                {
+                //if (userDTO != null && userDTO.AccountType == 2 && userDTO.AccountId == r.Restaurant.OwnerId)
+                //{
+
                     List<DishDTO> dishDTOs = r.Dishes.ToList();
                     List<Dish> dishes = new List<Dish>();
-                    foreach(DishDTO dish in dishDTOs)
-                    {
-                        Dish d = dish.Dish;
-                        d.DishTags = dish.Tags;
-                        d.AllergenInDishes = dish.AllergenInDishes;
-                        dishes.Add(d);
-                    }
 
-                    bool hasWorked = context.AddDishes(dishes);
+                    //foreach(DishDTO dish in dishDTOs)
+                    //{
+                    //    Dish d = dish.Dish;
+                    //    d.DishTags = dish.Tags;
+                    //    d.AllergenInDishes = dish.AllergenInDishes;
+                    //    dishes.Add(d);
+                    //}
+
+                    //bool hasWorked = context.AddDishes(dishes);
 
                     Restaurant restaurant = r.Restaurant;
-                    restaurant.RestaurantTags = r.RestaurantTags.ToList();
-                    hasWorked = hasWorked && context.UpdateRestaurant(restaurant);
+                    //restaurant.RestaurantTags = r.RestaurantTags.ToList();
+                    //hasWorked = hasWorked && context.UpdateRestaurant(restaurant);
 
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                    return hasWorked;
-                }
-                else
-                {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
-                }
+                    Restaurant added = context.AddRestaurant(restaurant);
+                    if(added != null)
+                    {
+                        foreach (RestaurantTag rt in r.RestaurantTags)
+                        {
+                            rt.RestaurantId = added.RestaurantId;
+                        }
+                        context.AddAllRestaurantTags(r.RestaurantTags);
+
+                        foreach (DishDTO d in dishDTOs)
+                        {
+                            d.Dish.Restaurant = added.RestaurantId;
+                            Dish addedDish = context.AddDish(d.Dish);
+                            foreach (DishTag dt in d.Tags)
+                            {
+                                dt.DishId = addedDish.DishId;
+                            }
+                            context.AddAllDishTags(d.Tags);
+                            foreach (AllergenInDish ad in d.AllergenInDishes)
+                            {
+                                ad.DishId = addedDish.DishId;
+                            }
+                            context.AddAllAllergensToDish(d.AllergenInDishes);
+                        }   
+                        Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                        return true;
+                    
+                    }
+                    else
+                    {
+                        Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+                    }
+                    return false;
+                //}
+                //else
+                //{
+                //    Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+                //}
             }
             catch
             {
@@ -246,26 +279,11 @@ namespace MenU_API.Controllers
         }
 
         [Route("Test")]
-        [HttpPost]
-        public void Test([FromBody] Credentials str)
+        [HttpGet]
+        public Restaurant Test()
         {
-            //string str = "{\"$id\":\"1\",\"RestaurantId\":29,\"RestaurantName\":\"gsasg\",\"StreetName\":\"sgsg\",\"OwnerId\":15,\"City\":\"afaf\",\"RestaurantPicture\":null,\"StreetNumber\":\"124\",\"RestaurantStatus\":0,\"Owner\":null,\"RestaurantStatusNavigation\":null,\"Dishes\":{\"$id\":\"2\",\"$values\":[{\"$id\":\"3\",\"DishId\":25,\"DishName\":\"sgsg\",\"DishDescription\":\"sggssg\",\"Restaurant\":29,\"DishStatus\":0,\"DishPicture\":null,\"DishStatusNavigation\":null,\"RestaurantNavigation\":null,\"AllergenInDishes\":{\"$id\":\"4\",\"$values\":[{\"$id\":\"5\",\"AllergenId\":9,\"DishId\":25,\"Allergen\":null,\"Dish\":null},{\"$id\":\"6\",\"AllergenId\":10,\"DishId\":25,\"Allergen\":null,\"Dish\":null},{\"$id\":\"7\",\"AllergenId\":12,\"DishId\":25,\"Allergen\":null,\"Dish\":null}]},\"DishTags\":{\"$id\":\"8\",\"$values\":[{\"$id\":\"9\",\"DishId\":25,\"TagId\":13,\"Dish\":null,\"Tag\":null},{\"$id\":\"10\",\"DishId\":25,\"TagId\":14,\"Dish\":null,\"Tag\":null}]},\"Reviews\":{\"$id\":\"11\",\"$values\":[]}}]},\"RestaurantTags\":{\"$id\":\"12\",\"$values\":[{\"$id\":\"13\",\"TagId\":9,\"RestaurantId\":29,\"Restaurant\":null,\"Tag\":null},{\"$id\":\"14\",\"TagId\":10,\"RestaurantId\":29,\"Restaurant\":null,\"Tag\":null}]}}";
-            JsonSerializerOptions options = new JsonSerializerOptions
-            {
-                ReferenceHandler = ReferenceHandler.Preserve,
-                PropertyNameCaseInsensitive = true
-            };
-
-            try
-            {
-                Restaurant r = System.Text.Json.JsonSerializer.Deserialize<Restaurant>("", options);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message); 
-            }
-            
-
+            Restaurant r = context.Restaurants.FirstOrDefault(x => x.RestaurantId == 38);
+            return r;
         }
     }
 }

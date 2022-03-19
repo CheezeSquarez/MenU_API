@@ -26,7 +26,7 @@ namespace MenU_API.Controllers
         // This Method logs in a user using an authentication token
         [Route("TokenLogin")]
         [HttpGet]
-        public AccountDTO Login([FromQuery] string token)
+        public Account Login([FromQuery] string token)
         {
             Account acc = null;
             try
@@ -49,7 +49,7 @@ namespace MenU_API.Controllers
                 HttpContext.Session.SetObject("user", userDTO);
 
                 Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                return userDTO;
+                return acc;
             }
             else
             {
@@ -61,7 +61,7 @@ namespace MenU_API.Controllers
         // This Method logs in a user using credentials (Item1 => username and Item2 => password)
         [Route("LoginCredentials")]
         [HttpPost]
-        public AccountDTO Login([FromBody] Credentials credentials )
+        public Account Login([FromBody] Credentials credentials )
         {
             Account acc = null;
 
@@ -97,7 +97,7 @@ namespace MenU_API.Controllers
                 HttpContext.Session.SetObject("user", userDTO);
 
                 Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                return userDTO;
+                return acc;
             }
             else
             {
@@ -350,47 +350,38 @@ namespace MenU_API.Controllers
             return false;
         }
 
-        [Route("AddRestaurant")]
+        [Route("UploadImage")]
         [HttpPost]
-        public bool AddRestaurant([FromBody] RestaurantDTO r)
+        public async Task<IActionResult> UploadImage(IFormFile file)
         {
-            AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
-            try
+            Account user = HttpContext.Session.GetObject<Account>("user");
+            //Check if user logged in and its ID is the same as the contact user ID
+            if (user != null)
             {
-                if (userDTO != null && userDTO.AccountType == 2 && userDTO.AccountId == r.Restaurant.OwnerId)
+                if (file == null)
                 {
-                    List<DishDTO> dishDTOs = r.Dishes.ToList();
-                    List<Dish> dishes = new List<Dish>();
-                    foreach (DishDTO dish in dishDTOs)
+                    return BadRequest();
+                }
+
+                try
+                {
+                    var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/imgs", file.FileName);
+                    using (var stream = new FileStream(path, FileMode.Create))
                     {
-                        Dish d = dish.Dish;
-                        d.DishTags = dish.Tags;
-                        d.AllergenInDishes = dish.AllergenInDishes;
-                        dishes.Add(d);
+                        await file.CopyToAsync(stream);
                     }
 
-                    bool hasWorked = context.AddDishes(dishes);
 
-                    Restaurant restaurant = r.Restaurant;
-                    restaurant.RestaurantTags = r.RestaurantTags.ToList();
-                    hasWorked = hasWorked && context.UpdateRestaurant(restaurant);
-
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                    return hasWorked;
+                    return Ok(new { length = file.Length, name = file.FileName });
                 }
-                else
+                catch (Exception e)
                 {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+                    Console.WriteLine(e.Message);
+                    return BadRequest();
                 }
             }
-            catch
-            {
-                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
-
-            }
-            return false;
+            return Forbid();
         }
-
 
     }
 }
