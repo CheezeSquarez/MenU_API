@@ -168,5 +168,16 @@ namespace MenU_BL.Models
             this.SaveChanges();
         }
 
+        public void EditRestaurant(int restaurantId, Restaurant r)
+        {
+            Restaurant restaurant = this.Restaurants.FirstOrDefault(x => x.RestaurantId == r.RestaurantId);
+            restaurant.RestaurantName = r.RestaurantName;
+            restaurant.StreetName = r.StreetName;
+            restaurant.City = r.City;
+            restaurant.StreetNumber = r.StreetNumber;
+            List<RestaurantTag> rTs = this.RestaurantTags.Where(x => x.RestaurantId == r.RestaurantId).ToList();
+
+        }
+
     }
 }

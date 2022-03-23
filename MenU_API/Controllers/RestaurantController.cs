@@ -278,6 +278,21 @@ namespace MenU_API.Controllers
             return false;
         }
 
+        [Route("EditRestaurant")]
+        [HttpPost]
+        public Restaurant EditRestaurant([FromBody] RestaurantDTO restaurant)
+        {
+            try
+            {
+                Restaurant update = context.
+
+            }
+            catch
+            {
+
+            }
+        }
+
         [Route("Test")]
         [HttpGet]
         public Restaurant Test()
