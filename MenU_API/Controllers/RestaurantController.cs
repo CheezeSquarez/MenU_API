@@ -278,18 +278,29 @@ namespace MenU_API.Controllers
             return false;
         }
 
-        [Route("EditRestaurant")]
+        [Route("UpdateRestaurant")]
         [HttpPost]
         public Restaurant EditRestaurant([FromBody] RestaurantDTO restaurant)
         {
             try
             {
-                Restaurant update = context.
+                Restaurant update = context.EditRestaurant(restaurant.Restaurant, restaurant.RestaurantTags);
+                if (update != null)
+                {
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                    return update;
+                }
+                else
+                {
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+                    return null;
+                }
 
             }
             catch
             {
-
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+                return null;
             }
         }
 

@@ -168,7 +168,7 @@ namespace MenU_BL.Models
             this.SaveChanges();
         }
 
-        public void EditRestaurant(int restaurantId, Restaurant r)
+        public Restaurant EditRestaurant(Restaurant r, List<RestaurantTag> tags)
         {
             Restaurant restaurant = this.Restaurants.FirstOrDefault(x => x.RestaurantId == r.RestaurantId);
             restaurant.RestaurantName = r.RestaurantName;
@@ -176,7 +176,16 @@ namespace MenU_BL.Models
             restaurant.City = r.City;
             restaurant.StreetNumber = r.StreetNumber;
             List<RestaurantTag> rTs = this.RestaurantTags.Where(x => x.RestaurantId == r.RestaurantId).ToList();
-
+            foreach (RestaurantTag t in rTs)
+            {
+                this.RestaurantTags.Remove(t);
+            }
+            foreach (RestaurantTag rt in tags)
+            {
+                this.RestaurantTags.Add(new RestaurantTag() { RestaurantId = rt.RestaurantId, TagId = rt.TagId });
+            }
+            this.SaveChanges();
+            return this.Restaurants.FirstOrDefault(x => x.RestaurantId == r.RestaurantId);
         }
 
     }
