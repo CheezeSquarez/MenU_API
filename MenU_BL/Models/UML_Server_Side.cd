@@ -1,0 +1,170 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ClassDiagram MajorVersion="1" MinorVersion="1" MembersFormat="NameAndType">
+  <Class Name="MenU_BL.Models.Account">
+    <Position X="13" Y="5.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AABAQNAAACQAAAAABwAAAAIQAQAQAAAABAAAAAAAAhg=</HashCode>
+      <FileName>ModelsBL\Account.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="AccountStatusNavigation" />
+      <Property Name="AccountTypeNavigation" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="AccountAuthTokens" />
+      <Property Name="AccountTags" />
+      <Property Name="Restaurants" />
+      <Property Name="Reviews" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.AccountAuthToken">
+    <Position X="11.75" Y="9.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>QAAAAAAQAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAEA=</HashCode>
+      <FileName>Models\AccountAuthToken.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Account" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.AccountTag">
+    <Position X="10.75" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAgAAAAEgAAAAAAAAAAAAAAAAAAAAAAAEE=</HashCode>
+      <FileName>Models\AccountTag.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Account" />
+      <Property Name="Tag" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.AccountType">
+    <Position X="15.75" Y="6" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAAAAAAAAAAAABCgAAAAAAAAAAA=</HashCode>
+      <FileName>Models\AccountType.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Accounts" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.Allergen">
+    <Position X="7.75" Y="9.5" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAAAAAAAAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAACAA=</HashCode>
+      <FileName>Models\Allergen.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="AllergenInDishes" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.AllergenInDish">
+    <Position X="5.75" Y="9.75" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAAAAAAAAIAAAAAAEAAAAAAAAAAACAACAA=</HashCode>
+      <FileName>Models\AllergenInDish.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Allergen" />
+      <Property Name="Dish" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.Dish">
+    <Position X="6" Y="6.5" Width="2" />
+    <TypeIdentifier>
+      <HashCode>oAAAAGAAAACAAAAAAAAGAAAAAEAAAAAAAEAAAAAAAAA=</HashCode>
+      <FileName>Models\Dish.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="DishStatusNavigation" />
+      <Property Name="RestaurantNavigation" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="AllergenInDishes" />
+      <Property Name="DishTags" />
+      <Property Name="Reviews" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.DishTag">
+    <Position X="5" Y="4" Width="1.25" />
+    <TypeIdentifier>
+      <HashCode>AAAAAAAAAAAgAAAAAAAAAAAAAEAAAAAAAAAAACAAAAE=</HashCode>
+      <FileName>Models\DishTag.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Dish" />
+      <Property Name="Tag" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.MenUContext" Collapsed="true">
+    <Position X="15.5" Y="4.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>gAAlOPBAAQFQQAAYIIQECAIQUEgiAECEAAASAAMgCBA=</HashCode>
+      <FileName>Models\MenUContext.cs</FileName>
+    </TypeIdentifier>
+  </Class>
+  <Class Name="MenU_BL.Models.ObjectStatus">
+    <Position X="8.25" Y="3.25" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAAFAIAAAAAAAAAAQAAAQAAAAAAACAAAAAAAAAAAA=</HashCode>
+      <FileName>Models\ObjectStatus.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="Accounts" />
+      <Property Name="Dishes" />
+      <Property Name="Restaurants" />
+      <Property Name="Reviews" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.Restaurant">
+    <Position X="12.5" Y="1.25" Width="2" />
+    <TypeIdentifier>
+      <HashCode>AgAAAgCMAAAAAACIAAQIAECAAAAAAAAAAAAEAAAAAAA=</HashCode>
+      <FileName>Models\Restaurant.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Owner" />
+      <Property Name="RestaurantStatusNavigation" />
+    </ShowAsAssociation>
+    <ShowAsCollectionAssociation>
+      <Property Name="Dishes" />
+      <Property Name="RestaurantTags" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.RestaurantTag">
+    <Position X="15.25" Y="2.25" Width="1.5" />
+    <TypeIdentifier>
+      <HashCode>IAAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAE=</HashCode>
+      <FileName>Models\RestaurantTag.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="Tag" />
+      <Property Name="Restaurant" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.Review">
+    <Position X="9.5" Y="8.5" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAIAAAABAAAAJAAAAAAACAABAAAIAEAEAAAAHIAAAA=</HashCode>
+      <FileName>Models\Review.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsAssociation>
+      <Property Name="DishNavigation" />
+      <Property Name="ReviewerNavigation" />
+      <Property Name="ReviewStatusNavigation" />
+    </ShowAsAssociation>
+  </Class>
+  <Class Name="MenU_BL.Models.Tag">
+    <Position X="9.75" Y="0.75" Width="1.75" />
+    <TypeIdentifier>
+      <HashCode>AAAAACAAAAAAAAAIAAAAAAAAAAAAAAAAAAAAAAAACBE=</HashCode>
+      <FileName>Models\Tag.cs</FileName>
+    </TypeIdentifier>
+    <ShowAsCollectionAssociation>
+      <Property Name="AccountTags" />
+      <Property Name="DishTags" />
+      <Property Name="RestaurantTags" />
+    </ShowAsCollectionAssociation>
+  </Class>
+  <Font Name="Segoe UI" Size="9" />
+</ClassDiagram>

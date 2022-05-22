@@ -13,6 +13,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\imgs\banners\" />
+    <Folder Include="wwwroot\imgs\reviews\" />
     <Folder Include="wwwroot\imgs\restaurants\" />
     <Folder Include="wwwroot\imgs\pfp\default\" />
   </ItemGroup>

@@ -146,18 +146,21 @@ namespace MenU_API.Controllers
         // This method logs the user out and removes it's auth token if one exists
         [Route("LogOut")]
         [HttpGet]
-        public void LogOut()
+        public void LogOut([FromQuery] string token)
         {
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
-            if (userDTO != null)
+            try
             {
+                context.RemoveToken(token);
+                context.SaveChanges();
                 HttpContext.Session.Clear();
                 Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
             }
-            else
+            catch
             {
-                Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+
             }
+           
         }
         
         // This method adds the specified user to the database
@@ -262,7 +265,7 @@ namespace MenU_API.Controllers
 
         [Route("UpdateAccountInfo")]
         [HttpPost]
-        public bool UpdateAccountInfo([FromBody] Account targetAccount )
+        public Account UpdateAccountInfo([FromBody] Account targetAccount )
         {
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
             try
@@ -279,7 +282,7 @@ namespace MenU_API.Controllers
                         updated = updated.UpdateUser(userInfo, context);
                         HttpContext.Session.SetObject("user", new AccountDTO(updated));
                         Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                        return true;
+                        return updated;
                     }
                     catch (UniqueKeyInUseException)
                     {
@@ -290,7 +293,7 @@ namespace MenU_API.Controllers
                     Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
             }
             catch { Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError; }
-            return false;
+            return null;
         }
 
         [Route("GetDefaultPfps")]
@@ -381,6 +384,13 @@ namespace MenU_API.Controllers
                 }
             }
             return Forbid();
+        }
+
+        [Route("Test")]
+        [HttpGet]
+        public void Test()
+        {
+            
         }
 
     }

@@ -54,11 +54,12 @@ namespace MenU_API.Controllers
 
         [Route("FindRestaurantById")]
         [HttpGet]
-        public Restaurant FindRestaurantById([FromQuery] int resId)
+        public Restaurant FindRestaurantById([FromQuery] string resId)
         {
             try
             {
-                Restaurant r = context.FindRestaurantById(resId);
+                int resIdInt = int.Parse(resId);
+                Restaurant r = context.FindRestaurantById(resIdInt);
                 if (r != null)
                 {
                     Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
@@ -206,13 +207,13 @@ namespace MenU_API.Controllers
 
         [Route("AddRestaurant")]
         [HttpPost]
-        public bool AddRestaurant([FromBody] RestaurantDTO r)
+        public RestaurantResult AddRestaurant([FromBody] RestaurantDTO r)
         {
             AccountDTO userDTO = HttpContext.Session.GetObject<AccountDTO>("user");
             try
             {
-                //if (userDTO != null && userDTO.AccountType == 2 && userDTO.AccountId == r.Restaurant.OwnerId)
-                //{
+                if (userDTO != null && userDTO.AccountType == 2 && userDTO.AccountId == r.Restaurant.OwnerId)
+                {
 
                     List<DishDTO> dishDTOs = r.Dishes.ToList();
                     List<Dish> dishes = new List<Dish>();
@@ -254,28 +255,29 @@ namespace MenU_API.Controllers
                                 ad.DishId = addedDish.DishId;
                             }
                             context.AddAllAllergensToDish(d.AllergenInDishes);
+                            d.Dish.DishId = addedDish.DishId;
                         }   
+
                         Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
-                        return true;
-                    
+                        return new RestaurantResult() { Restaurant = added, Dishes = dishDTOs};
                     }
                     else
                     {
                         Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
                     }
-                    return false;
-                //}
-                //else
-                //{
-                //    Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
-                //}
+                    return null;
+                }
+                else
+                {
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.Forbidden;
+                }
             }
             catch
             {
                 Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
 
             }
-            return false;
+            return null;
         }
 
         [Route("UpdateRestaurant")]
@@ -292,7 +294,7 @@ namespace MenU_API.Controllers
                 }
                 else
                 {
-                    Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
                     return null;
                 }
 
@@ -302,6 +304,75 @@ namespace MenU_API.Controllers
                 Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
                 return null;
             }
+        }
+
+        [Route("PostReview")]
+        [HttpPost]
+        public int PostReview([FromBody] Review r)
+        {
+            if(r != null)
+            {
+                try
+                {
+                    int id = context.AddReview(r);
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                    return id;
+                }
+                catch(Exception ex)
+                {
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+                }
+            }
+            else
+            {
+                //Bad Request
+                Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+
+            }
+            return -1;
+        }
+
+        [Route("GetDishReviews")]
+        [HttpGet]
+        public List<Review> GetDishReviews([FromQuery] int id)
+        {
+            if (id > 0)
+            {
+                try
+                {
+                    List<Review> reviews = context.GetDishReviews(id);
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                    return reviews;
+                }
+                catch (Exception ex)
+                {
+                    Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+                }
+            }
+            else
+            {
+                //Bad Request
+                Response.StatusCode = (int)System.Net.HttpStatusCode.BadRequest;
+
+            }
+            return null;
+        }
+
+        [Route("GetDishById")]
+        [HttpGet]
+        public Dish GetDishById([FromQuery] int dishId)
+        {
+            try 
+            {
+                Dish d = context.GetDishById(dishId);
+                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                return d;
+            }
+            catch (Exception ex)
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            }
+            return null;
         }
 
         [Route("Test")]

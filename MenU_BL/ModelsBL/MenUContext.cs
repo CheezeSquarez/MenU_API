@@ -32,11 +32,17 @@ namespace MenU_BL.Models
             this.Accounts.Add(acc);
             this.SaveChanges();
         }
-        public void AddReview(Review r)
+        public int AddReview(Review r)
         {
             this.Reviews.Add(r);
             this.SaveChanges();
+            return r.ReviewId;
         }
+        public Dish GetDishById(int id) => this.Dishes
+            .Include(a => a.Reviews)
+            .Include(b => b.AllergenInDishes).ThenInclude(c => c.Allergen)
+            .Include(d => d.DishTags).ThenInclude(e => e.Tag)
+            .FirstOrDefault(x => x.DishId == id);
         public string GetSalt(string username)
         {
             Account a = this.Accounts.FirstOrDefault(x => x.Username == username);
@@ -58,8 +64,8 @@ namespace MenU_BL.Models
         public Account Login(string username, string hashedPass) 
         {
             return this.Accounts
-                 .Include(x => x.Restaurants)
-                 .ThenInclude(r => r.Dishes).ThenInclude(a => a.DishTags)
+                 .Include(x => x.Restaurants).ThenInclude(z => z.RestaurantTags).
+                 Include(x => x.Restaurants).ThenInclude(r => r.Dishes).ThenInclude(a => a.DishTags)
                  .Include(b => b.Reviews)
                  .Where(x => x.Username == username && x.Pass == hashedPass).FirstOrDefault();
         }
@@ -69,6 +75,7 @@ namespace MenU_BL.Models
             if (a != null)
             {
                 Account acc = this.Accounts
+                    .Include(x => x.Restaurants).ThenInclude(z => z.RestaurantTags)
                     .Include(x => x.Restaurants)
                     .ThenInclude(r => r.Dishes).ThenInclude(a => a.DishTags)
                     .Include(b => b.Reviews)
@@ -89,7 +96,10 @@ namespace MenU_BL.Models
         public List<Review> GetRestaurantReviews(int id) => this.Reviews.Where(x => x.DishNavigation.Restaurant == id).ToList();
         public List<Review> GetDishReviews(int id) => this.Reviews.Where(x => x.Dish == id).ToList();
         public List<Restaurant> GetPendingRestraurants() => this.Restaurants.Where(x => x.RestaurantStatus == this.ObjectStatuses.FirstOrDefault(y => y.StatusName == "Pending").StatusId).ToList();
-        public List<Restaurant> GetOwnerRestaurants(int ownerId) => this.Restaurants.Where(x => x.OwnerId == ownerId).ToList();
+        public List<Restaurant> GetOwnerRestaurants(int ownerId) => this.Restaurants.Where(x => x.OwnerId == ownerId)
+            .Include(x => x.RestaurantTags)
+                .Include(y => y.Dishes).ThenInclude(z => z.AllergenInDishes)
+                .Include(a => a.Dishes).ThenInclude(b => b.DishTags).ToList();
         public List<Tag> GetAllTags() => this.Tags.ToList();
         public List<Allergen> GetAllAllergens() => this.Allergens.ToList();
         public Dish FindDishByRestaurant(int id) => this.Dishes.FirstOrDefault(x => x.Restaurant == id);
@@ -187,6 +197,7 @@ namespace MenU_BL.Models
             this.SaveChanges();
             return this.Restaurants.FirstOrDefault(x => x.RestaurantId == r.RestaurantId);
         }
+        public void RemoveToken(string token) => this.AccountAuthTokens.Remove(this.AccountAuthTokens.FirstOrDefault(x => x.AuthToken == token));
 
     }
 }

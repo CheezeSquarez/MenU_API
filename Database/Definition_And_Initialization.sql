@@ -72,8 +72,8 @@ CREATE TABLE Review(
     Rating INT NOT NULL,
     Reviewer INT NOT NULL,
     ReviewStatus INT NOT NULL DEFAULT 1,
-    ReviewPicture NVARCHAR(255) NOT NULL DEFAULT '/imgs/default_review_pfp.png',
-    IsLiked BIT NOT NULL
+    HasPicture BIT NOT NULL,
+	IsLiked BIT NOT NULL
 );
 ALTER TABLE
     Review ADD CONSTRAINT PK_Review_ReviewID PRIMARY KEY(ReviewID);

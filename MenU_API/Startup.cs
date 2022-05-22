@@ -37,6 +37,7 @@ namespace MenU_API
                         .ReferenceHandler = ReferenceHandler.Preserve);
             services.AddControllers().AddJsonOptions(o => o.JsonSerializerOptions
                         .PropertyNameCaseInsensitive = true);
+            
 
             #region Add Session support
             //The following two commands set the Session state to work!
@@ -44,9 +45,10 @@ namespace MenU_API
 
             services.AddSession(options =>
             {
-                options.IdleTimeout = TimeSpan.FromMinutes(10);
+                options.IdleTimeout = TimeSpan.FromMinutes(180);
                 options.Cookie.HttpOnly = true;
                 options.Cookie.IsEssential = true;
+                
             });
             #endregion
 
@@ -61,13 +63,18 @@ namespace MenU_API
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            DefaultFilesOptions defaultFilesOptions = new DefaultFilesOptions();
+            defaultFilesOptions.DefaultFileNames.Clear();
+            defaultFilesOptions.DefaultFileNames.Add("index.html");
+            //Setting the Default Files
+            app.UseDefaultFiles(defaultFilesOptions);
             #region Development and Https redirection support
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
 
-            app.UseHttpsRedirection();
+
             #endregion
 
             #region Static file support
@@ -77,7 +84,7 @@ namespace MenU_API
 
             app.UseRouting();
 
-            app.UseAuthorization();
+            //app.UseAuthorization();
 
             #region Session support
             //Tells the application to use Session!

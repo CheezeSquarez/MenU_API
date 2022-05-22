@@ -26,9 +26,7 @@ namespace MenU_BL.Models
         public int Rating { get; set; }
         public int Reviewer { get; set; }
         public int ReviewStatus { get; set; }
-        [Required]
-        [StringLength(255)]
-        public string ReviewPicture { get; set; }
+        public bool HasPicture { get; set; }
         public bool IsLiked { get; set; }
 
         [ForeignKey(nameof(Dish))]

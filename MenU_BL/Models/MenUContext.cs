@@ -205,8 +205,6 @@ namespace MenU_BL.Models
             {
                 entity.Property(e => e.PostDate).HasDefaultValueSql("(getdate())");
 
-                entity.Property(e => e.ReviewPicture).HasDefaultValueSql("('/imgs/default_review_pfp.png')");
-
                 entity.Property(e => e.ReviewStatus).HasDefaultValueSql("((1))");
 
                 entity.HasOne(d => d.DishNavigation)
