@@ -353,6 +353,28 @@ namespace MenU_API.Controllers
             return false;
         }
 
+        [Route("GetReviewsByAccountId")]
+        [HttpGet]
+        public List<Review> GetReviewsByAccountId([FromQuery] int id)
+        {
+            try 
+            {
+                List<Review> reviews = context.GetUserReviews(id);
+                Response.StatusCode = (int)System.Net.HttpStatusCode.OK;
+                return reviews;
+            }
+            catch (Microsoft.Data.SqlClient.SqlException)
+            {
+                Response.StatusCode = (int)System.Net.HttpStatusCode.InternalServerError;
+            }
+            catch (Exception e)
+            {
+                //Log Error
+            }
+            return null;
+
+        }
+
         [Route("UploadImage")]
         [HttpPost]
         public async Task<IActionResult> UploadImage(IFormFile file)
@@ -384,13 +406,6 @@ namespace MenU_API.Controllers
                 }
             }
             return Forbid();
-        }
-
-        [Route("Test")]
-        [HttpGet]
-        public void Test()
-        {
-            
         }
 
     }
